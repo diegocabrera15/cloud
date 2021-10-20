@@ -1,0 +1,70 @@
+service: requestPizzas
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  region: us-east-1
+  environment:
+    REGION: ${self:provider.region}
+    PENDING_ORDER_QUEUE:
+      Ref: PendingOrdersQueue
+    PENDING_ORDER_QUEUE_NAME: PendingOrdersQueue
+    COMPLETE_ORDER_TABLE: CompleteOrderTable
+
+  #Set permissions to SQS and DynamoDB
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+      Resource: "arn:aws:sqs:${self:provider.region}:*:${self:provider.environment.PENDING_ORDER_QUEUE_NAME}"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:DeleteItem"
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.COMPLETE_ORDER_TABLE}"
+
+
+#Syntax for declare lambda functions
+functions:
+  hacerPedido: #We can define function name
+    handler: handler.hacerPedido
+    events:
+      - http:
+          method: post
+          path: pedido
+  prepararPedido: #We can define function name
+    handler: handler.prepararPedido
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - PendingOrdersQueue
+              - Arn
+          batchSize: 1
+
+resources:
+  Resources:
+    #Syntax for declare SQS Queue
+    PendingOrdersQueue: #We can define queue name
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: ${self:provider.environment.PENDING_ORDER_QUEUE_NAME}
+    #Syntax for declare DynamoDB table
+    CompleteOrderTable: #we can define name table
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: "orderId" #key or primmary key
+          AttributeType: "S" #Data type
+        KeySchema:
+        - AttributeName: "orderId"
+          KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.COMPLETE_ORDER_TABLE}
