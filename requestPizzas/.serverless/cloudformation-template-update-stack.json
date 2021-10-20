@@ -83,6 +83,18 @@
         "LogGroupName": "/aws/lambda/requestPizzas-dev-prepararPedido"
       }
     },
+    "EnviarPedidoLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/requestPizzas-dev-enviarPedido"
+      }
+    },
+    "EstadoPedidoLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/requestPizzas-dev-estadoPedido"
+      }
+    },
     "IamRoleLambdaExecution": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -160,6 +172,23 @@
                 {
                   "Effect": "Allow",
                   "Action": [
+                    "dynamodb:GetRecords",
+                    "dynamodb:GetShardIterator",
+                    "dynamodb:DescribeStream",
+                    "dynamodb:ListStreams"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "CompleteOrderTable",
+                        "StreamArn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
                     "sqs:ReceiveMessage",
                     "sqs:DeleteMessage",
                     "sqs:GetQueueAttributes"
@@ -200,7 +229,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/requestPizzas/dev/1634607063241-2021-10-19T01:31:03.241Z/requestPizzas.zip"
+          "S3Key": "serverless/requestPizzas/dev/1634707920302-2021-10-20T05:32:00.302Z/requestPizzas.zip"
         },
         "Handler": "handler.hacerPedido",
         "Runtime": "nodejs12.x",
@@ -235,7 +264,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/requestPizzas/dev/1634607063241-2021-10-19T01:31:03.241Z/requestPizzas.zip"
+          "S3Key": "serverless/requestPizzas/dev/1634707920302-2021-10-20T05:32:00.302Z/requestPizzas.zip"
         },
         "Handler": "handler.prepararPedido",
         "Runtime": "nodejs12.x",
@@ -263,24 +292,114 @@
         "PrepararPedidoLogGroup"
       ]
     },
-    "HacerPedidoLambdaVersionsco2HnxGZGTqedzZzi1muO9hyHMhUaTry9JoPlNpVcs": {
+    "EnviarPedidoLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/requestPizzas/dev/1634707920302-2021-10-20T05:32:00.302Z/requestPizzas.zip"
+        },
+        "Handler": "handler.enviarPedido",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "requestPizzas-dev-enviarPedido",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "REGION": "us-east-1",
+            "PENDING_ORDER_QUEUE": {
+              "Ref": "PendingOrdersQueue"
+            },
+            "PENDING_ORDER_QUEUE_NAME": "PendingOrdersQueue",
+            "COMPLETE_ORDER_TABLE": "CompleteOrderTable"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "EnviarPedidoLogGroup"
+      ]
+    },
+    "EstadoPedidoLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/requestPizzas/dev/1634707920302-2021-10-20T05:32:00.302Z/requestPizzas.zip"
+        },
+        "Handler": "handler.estadoPedido",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "requestPizzas-dev-estadoPedido",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "REGION": "us-east-1",
+            "PENDING_ORDER_QUEUE": {
+              "Ref": "PendingOrdersQueue"
+            },
+            "PENDING_ORDER_QUEUE_NAME": "PendingOrdersQueue",
+            "COMPLETE_ORDER_TABLE": "CompleteOrderTable"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "EstadoPedidoLogGroup"
+      ]
+    },
+    "HacerPedidoLambdaVersioncSqFSJxATzwIry9I7qWRXxNV2tYclXIvqxOkP7u5PU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "HacerPedidoLambdaFunction"
         },
-        "CodeSha256": "LrsPdSFbrcUJ3VAtyiOFuPYichIGowpflhq1dsnGTqg="
+        "CodeSha256": "vZAiO3bMHfdyNArLSVU3wvkzyJM+f5I5EJszm055QpU="
       }
     },
-    "PrepararPedidoLambdaVersionCKbzjrwBP3HUGMFRIljiYOxq8EgwQDxkZKWev9WUo": {
+    "PrepararPedidoLambdaVersion1JEwKjfLhUqf2A4FYaLcRGI0Dhd6WaheAvzn9Thjo": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "PrepararPedidoLambdaFunction"
         },
-        "CodeSha256": "LrsPdSFbrcUJ3VAtyiOFuPYichIGowpflhq1dsnGTqg="
+        "CodeSha256": "vZAiO3bMHfdyNArLSVU3wvkzyJM+f5I5EJszm055QpU="
+      }
+    },
+    "EnviarPedidoLambdaVersionlKXVRkuqHnkvZSxzbXhqBbFER1R9rv2VR5yhDxhCnk": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "EnviarPedidoLambdaFunction"
+        },
+        "CodeSha256": "vZAiO3bMHfdyNArLSVU3wvkzyJM+f5I5EJszm055QpU="
+      }
+    },
+    "EstadoPedidoLambdaVersionD3UyBW3g2DU7Ibc34kSJpvizobRuvgYL9xzo65MyGE": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "EstadoPedidoLambdaFunction"
+        },
+        "CodeSha256": "vZAiO3bMHfdyNArLSVU3wvkzyJM+f5I5EJszm055QpU="
       }
     },
     "ApiGatewayRestApi": {
@@ -305,6 +424,18 @@
           ]
         },
         "PathPart": "pedido",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourcePedidoOrderidVar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourcePedido"
+        },
+        "PathPart": "{orderId}",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -356,7 +487,53 @@
         "HacerPedidoLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1634607061387": {
+    "ApiGatewayMethodPedidoOrderidVarGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourcePedidoOrderidVar"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "EstadoPedidoLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "EstadoPedidoLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayDeployment1634707918398": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -365,7 +542,8 @@
         "StageName": "dev"
       },
       "DependsOn": [
-        "ApiGatewayMethodPedidoPost"
+        "ApiGatewayMethodPedidoPost",
+        "ApiGatewayMethodPedidoOrderidVarGet"
       ]
     },
     "HacerPedidoLambdaPermissionApiGateway": {
@@ -403,6 +581,66 @@
             ]
           ]
         }
+      }
+    },
+    "EstadoPedidoLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "EstadoPedidoLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "EnviarPedidoEventSourceMappingDynamodbCompleteOrderTable": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "DependsOn": [
+        "IamRoleLambdaExecution"
+      ],
+      "Properties": {
+        "BatchSize": 1,
+        "Enabled": true,
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "CompleteOrderTable",
+            "StreamArn"
+          ]
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "EnviarPedidoLambdaFunction",
+            "Arn"
+          ]
+        },
+        "StartingPosition": "LATEST"
       }
     },
     "PrepararPedidoEventSourceMappingSQSPendingOrdersQueue": {
@@ -452,7 +690,10 @@
           "ReadCapacityUnits": 1,
           "WriteCapacityUnits": 1
         },
-        "TableName": "CompleteOrderTable"
+        "TableName": "CompleteOrderTable",
+        "StreamSpecification": {
+          "StreamViewType": "NEW_IMAGE"
+        }
       }
     }
   },
@@ -468,7 +709,7 @@
     "HacerPedidoLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "HacerPedidoLambdaVersionsco2HnxGZGTqedzZzi1muO9hyHMhUaTry9JoPlNpVcs"
+        "Ref": "HacerPedidoLambdaVersioncSqFSJxATzwIry9I7qWRXxNV2tYclXIvqxOkP7u5PU"
       },
       "Export": {
         "Name": "sls-requestPizzas-dev-HacerPedidoLambdaFunctionQualifiedArn"
@@ -477,10 +718,28 @@
     "PrepararPedidoLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "PrepararPedidoLambdaVersionCKbzjrwBP3HUGMFRIljiYOxq8EgwQDxkZKWev9WUo"
+        "Ref": "PrepararPedidoLambdaVersion1JEwKjfLhUqf2A4FYaLcRGI0Dhd6WaheAvzn9Thjo"
       },
       "Export": {
         "Name": "sls-requestPizzas-dev-PrepararPedidoLambdaFunctionQualifiedArn"
+      }
+    },
+    "EnviarPedidoLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "EnviarPedidoLambdaVersionlKXVRkuqHnkvZSxzbXhqBbFER1R9rv2VR5yhDxhCnk"
+      },
+      "Export": {
+        "Name": "sls-requestPizzas-dev-EnviarPedidoLambdaFunctionQualifiedArn"
+      }
+    },
+    "EstadoPedidoLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "EstadoPedidoLambdaVersionD3UyBW3g2DU7Ibc34kSJpvizobRuvgYL9xzo65MyGE"
+      },
+      "Export": {
+        "Name": "sls-requestPizzas-dev-EstadoPedidoLambdaFunctionQualifiedArn"
       }
     },
     "ServiceEndpoint": {
